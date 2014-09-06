@@ -1,4 +1,5 @@
+require('chai').should()
 
 it 'should work', ->
-  console.log 'it works!'
+  'awesome'.should.equal 'awesome'
 

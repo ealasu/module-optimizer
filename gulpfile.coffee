@@ -30,3 +30,5 @@ gulp.task 'dist', ->
     'coffee'
   )
 
+gulp.task 'default', ['dist']
+
