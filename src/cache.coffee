@@ -75,14 +75,13 @@ module.exports = class Cache extends EventEmitter
       if unResolved
         throw new Error "unresolved require #{k} from module #{module.path}"
 
+  # purge the whole cache
+  purge: ->
+    @_cache = {}
+
   # remove a module from the cache, and
   # recursively remove all of its orphaned dependents
-  purge: (filepath) ->
-    if not filepath
-      # purge the whole cache
-      @_cache = {}
-      return
-
+  purgeModule: (filepath) ->
     m = @_cache[filepath]
 
     # sanity check

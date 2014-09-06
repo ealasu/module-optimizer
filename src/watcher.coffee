@@ -1,14 +1,19 @@
+{EventEmitter} = require 'events'
 
-module.exports = class Watcher
+# Watch files for changes.
+# When a file changes or gets deleted, remove it from the cache, and then rebundle all affected bundles.
+# When a file gets deleted, or gets removed from the dependency tree, stop watching it.
+# When the cache detects a new file, start watching it.
+module.exports = class Watcher extends EventEmitter
 
   constructor: ({@cache, @bundlers}) ->
     # hook events
-    @cache.on 'add', @onAdd.bind @
+    @cache.on 'add', @moduleAdded.bind @
 
-  onAdd: (filepath) ->
+  moduleAdded: (filepath) ->
     # watch the file
 
-  onChange: (filepath) ->
-    @cache.purge filepath
-    # find the bundlers that use this module, and rebundle them
+  moduleChanged: (filepath) ->
+    @cache.purgeModule filepath
+    @emit 'change', filepath
 
