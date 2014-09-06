@@ -1,3 +1,4 @@
+fs = require 'fs'
 {EventEmitter} = require 'events'
 _ = require 'lodash'
 File = require 'vinyl'
@@ -16,7 +17,11 @@ module.exports = class Cache extends EventEmitter
   addResolver: (fn) ->
     @_resolvers.push fn
 
-  getModule: (filepath, dependencyChain = []) ->
+  # override this for testing
+  _loadModuleContents: (filepath) ->
+    fs.readFileSync(filepath)
+
+  get: (filepath, dependencyChain = []) ->
     module = @_cache[filepath]
     if module
       # update dependents
@@ -27,7 +32,7 @@ module.exports = class Cache extends EventEmitter
 
     module = new File
       path: filepath
-      contents: fs.readFileSync(filepath)
+      contents: @_loadModuleContents(filepath)
 
     @_transform module
 
@@ -36,7 +41,7 @@ module.exports = class Cache extends EventEmitter
     requires = detective(module.contents)
     if requires
       requires.forEach (r) ->
-        module.requres[r] = null
+        module.requires[r] = null
 
     @_resolve module
 
@@ -48,7 +53,7 @@ module.exports = class Cache extends EventEmitter
       if requireFilepath in dependencyChain
         throw new Error "circular dependency on module #{requireFilepath}, chain: #{dependencyChain.join(', ')}"
 
-      @getModule requireFilepath, dependencyChain.concat([filepath])
+      @get requireFilepath, dependencyChain.concat([filepath])
 
     @_cache[filepath] = module
     @emit 'add', module
@@ -64,24 +69,16 @@ module.exports = class Cache extends EventEmitter
 
     # make sure all the requires were resolved
     for own k of module.requires
-      unResolved = do ->
-        filepath = module.requires[k]
-        return true if not filepath
-        try
-          stat = fs.statSync filepath
-          return true if not stat.isFile()
-        catch ex
-          return true
-      if unResolved
+      if not module.requires[k]
+        # TODO: log the exact reason
         throw new Error "unresolved require #{k} from module #{module.path}"
 
   # purge the whole cache
   purge: ->
     @_cache = {}
 
-  # remove a module from the cache, and
-  # recursively remove all of its orphaned dependents
-  purgeModule: (filepath) ->
+  # remove a module from the cache, and recursively remove any orphaned dependents
+  remove: (filepath) ->
     m = @_cache[filepath]
 
     # sanity check
@@ -94,5 +91,5 @@ module.exports = class Cache extends EventEmitter
       requiredModule = @_cache[m.requires[k]]
       delete requiredModule.dependents[filepath]
       if _.isEmpty requiredModule.dependents
-        @purge requiredModule.path
+        @remove requiredModule.path # TODO does this need to be absolute?
 
