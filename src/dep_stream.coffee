@@ -20,7 +20,7 @@ module.exports = (options) ->
     module = cache.get(moduleFilepath)
     m =
       id: moduleId
-      source: module.content.toString()
+      source: module.contents.toString()
       deps: _.mapValues module.requires, (v) ->
         moduleIds[v]
     if _.contains entries, moduleFilepath

@@ -23,7 +23,7 @@ describe 'depStream', ->
       entries: ['a.js']
       cache:
         'a.js':
-          content: new Buffer 'a'
+          contents: new Buffer 'a'
           requires: {}
       expected: [
         id: 1
@@ -38,11 +38,11 @@ describe 'depStream', ->
       entries: ['a.js']
       cache:
         'a.js':
-          content: new Buffer 'a'
+          contents: new Buffer 'a'
           requires:
             './b.js': 'b.js'
         'b.js':
-          content: new Buffer 'b'
+          contents: new Buffer 'b'
           requires: {}
       expected: [
         id: 1
