@@ -2,9 +2,13 @@
   "name": "module-optimizer",
   "version": "0.0.1",
   "dependencies": {
+    "browser-pack": "^3.1.1",
     "detective": "^3.1.0",
+    "event-stream": "^3.1.7",
     "lodash": "^2.4.1",
-    "vinyl": "^0.4.3"
+    "through2": "^0.6.1",
+    "vinyl": "^0.4.3",
+    "vinyl-source-stream": "^0.1.1"
   },
   "devDependencies": {
     "chai": "^1.9.1",
