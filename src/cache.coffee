@@ -67,12 +67,14 @@ module.exports = class Cache extends EventEmitter
   _resolve: (module) ->
     module.requires = _.mapValues module.requires, (v, k) =>
       for fn in @_resolvers
-        v = fn(path.dirname(module.path), k)
+        v = fn(k, path.dirname(module.path))
         break if v?
 
       # make sure it was resolved
       if not v?
         throw new Error "unresolved require #{k} from module #{module.path}"
+      if typeof v != 'string'
+        throw new TypeError "require #{k} resolved to a non-string: #{v}"
 
       v
 

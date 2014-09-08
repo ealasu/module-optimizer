@@ -12,9 +12,7 @@ describe 'Cache', ->
       cache._loadModuleContents = sinon.stub()
       for own k of files
         cache._loadModuleContents.withArgs(k).returns new Buffer(files[k])
-      cache.addResolver (module) ->
-        for own k of module.requires
-          module.requires[k] = k
+      cache.addResolver (name) -> name
     cache
 
   describe 'get', ->

@@ -1,7 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 
-module.exports = (dirpath, name) ->
+module.exports = (name, dirpath) ->
   # only look at relative paths
   if name.slice(0, 1) == '.'
     filepath = path.join dirpath, name
