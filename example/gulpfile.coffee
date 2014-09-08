@@ -1,5 +1,5 @@
 gulp = require 'gulp'
-optimize = require '../src/'
+optimize = require '..'
 
 gulp.task 'default', ->
   optimize 'a.js', 'optimized.js'
