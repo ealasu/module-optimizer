@@ -1,8 +1,7 @@
 _ = require 'lodash'
 es = require 'event-stream'
 
-module.exports = (options) ->
-  {cache, entries} = options
+module.exports = ({cache, entries}) ->
 
   # trace dependencies, and assign an id to each module
   moduleIds = {} # map of module filepath -> module id
@@ -15,6 +14,7 @@ module.exports = (options) ->
 
   _.each entries, traceDeps
 
+  # emit the result as a stream, to be consumed by browser-pack
   es.readArray _.pairs moduleIds
   .pipe es.map ([moduleFilepath, moduleId], cb) =>
     module = cache.get(moduleFilepath)
