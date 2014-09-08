@@ -1,4 +1,5 @@
 fs = require 'fs'
+path = require 'path'
 {EventEmitter} = require 'events'
 _ = require 'lodash'
 File = require 'vinyl'
@@ -13,9 +14,11 @@ module.exports = class Cache extends EventEmitter
 
   addTransform: (fn) ->
     @_transforms.push fn
+    @
 
   addResolver: (fn) ->
     @_resolvers.push fn
+    @
 
   # override this for testing
   _loadModuleContents: (filepath) ->
@@ -46,11 +49,9 @@ module.exports = class Cache extends EventEmitter
     @_resolve module
 
     # fill cache
-    for own k of module.requires
-      requireFilepath = module.requires[k]
-
+    _.each module.requires, (requireFilepath) =>
       # make sure this isn't a circular dependency
-      if requireFilepath in dependencyChain
+      if _.contains dependencyChain, requireFilepath
         throw new Error "circular dependency on module #{requireFilepath}, chain: #{dependencyChain.join(', ')}"
 
       @get requireFilepath, dependencyChain.concat([filepath])
@@ -64,14 +65,16 @@ module.exports = class Cache extends EventEmitter
       fn(module)
 
   _resolve: (module) ->
-    for fn in @_resolvers
-      fn(module)
+    module.requires = _.mapValues module.requires, (v, k) =>
+      for fn in @_resolvers
+        v = fn(path.dirname(module.path), k)
+        break if v?
 
-    # make sure all the requires were resolved
-    for own k of module.requires
-      if not module.requires[k]
-        # TODO: log the exact reason
+      # make sure it was resolved
+      if not v?
         throw new Error "unresolved require #{k} from module #{module.path}"
+
+      v
 
   # purge the whole cache
   purge: ->
