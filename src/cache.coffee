@@ -26,8 +26,13 @@ module.exports = class Cache extends EventEmitter
 
   get: (filepath, dependencyChain = []) ->
     module = @_cache[filepath]
-    return module if module
+    if not module
+      module = @_loadModule(filepath)
+      @_cache[filepath] = module
+      @emit 'add', module
+    module
 
+  _loadModule: (filepath) ->
     module = new File
       path: filepath
       contents: @_loadModuleContents(filepath)
@@ -42,17 +47,8 @@ module.exports = class Cache extends EventEmitter
 
     @_resolve module
 
-    # fill cache
-    _.each module.requires, (requireFilepath) =>
-      # make sure this isn't a circular dependency
-      if _.contains dependencyChain, requireFilepath
-        throw new Error "circular dependency on module #{requireFilepath}, chain: #{dependencyChain.join(', ')}"
+    module
 
-      @get requireFilepath, dependencyChain.concat([filepath])
-
-    @_cache[filepath] = module
-    @emit 'add', module
-    return module
 
   _transform: (module) ->
     for fn in @_transforms
