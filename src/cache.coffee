@@ -37,36 +37,30 @@ module.exports = class Cache extends EventEmitter
       path: filepath
       contents: @_loadModuleContents(filepath)
 
-    @_transform module
-
-    module.requires = {} # map of module name -> module filepath
-    requires = detective(module.contents)
-    if requires
-      requires.forEach (r) ->
-        module.requires[r] = null
-
-    @_resolve module
-
-    module
-
-
-  _transform: (module) ->
     for fn in @_transforms
       fn(module)
 
-  _resolve: (module) ->
-    module.requires = _.mapValues module.requires, (v, k) =>
+    requires = detective(module.contents)
+
+    # map of require name -> resolved module filepath
+    module.requires = _(requires)
+    .map(k) =>
+      v = null
       for fn in @_resolvers
         v = fn(k, path.dirname(module.path))
         break if v?
 
       # make sure it was resolved
-      if not v?
+      if not v
         throw new Error "unresolved require #{k} from module #{module.path}"
       if typeof v != 'string'
         throw new TypeError "require #{k} resolved to a non-string: #{v}"
 
-      v
+      [k, v]
+    .zipObject()
+    .value()
+
+    module
 
   # purge the whole cache
   purge: ->
