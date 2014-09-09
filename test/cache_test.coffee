@@ -8,11 +8,13 @@ describe 'Cache', ->
 
   build = (files) ->
     cache = new Cache
+      resolvers: [
+        (name) -> name
+      ]
     if files
       cache._loadModuleContents = sinon.stub()
-      for own k of files
+      for k in Object.keys(files)
         cache._loadModuleContents.withArgs(k).returns new Buffer(files[k])
-      cache.addResolver (name) -> name
     cache
 
   describe 'get', ->

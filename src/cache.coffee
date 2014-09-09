@@ -7,18 +7,10 @@ detective = require 'detective'
 
 module.exports = class Cache extends EventEmitter
 
-  constructor: ->
+  constructor: ({@transforms, @resolvers} = {}) ->
     @_cache = {}
-    @_transforms = []
-    @_resolvers = []
-
-  addTransform: (fn) ->
-    @_transforms.push fn
-    @
-
-  addResolver: (fn) ->
-    @_resolvers.push fn
-    @
+    @transforms ||= []
+    @resolvers ||= []
 
   # override this for testing
   _loadModuleContents: (filepath) ->
@@ -37,7 +29,7 @@ module.exports = class Cache extends EventEmitter
       path: filepath
       contents: @_loadModuleContents(filepath)
 
-    for fn in @_transforms
+    for fn in @transforms
       fn(module)
 
     requires = detective(module.contents)
@@ -46,7 +38,7 @@ module.exports = class Cache extends EventEmitter
     module.requires = _(requires)
     .map (k) =>
       v = null
-      for fn in @_resolvers
+      for fn in @resolvers
         v = fn(k, path.dirname(module.path))
         break if v?
 
