@@ -26,12 +26,7 @@ module.exports = class Cache extends EventEmitter
 
   get: (filepath, dependencyChain = []) ->
     module = @_cache[filepath]
-    if module
-      # update dependents
-      dependent = _.last dependencyChain
-      if dependent
-        module.dependents[dependent] = true
-      return module
+    return module if module
 
     module = new File
       path: filepath
@@ -39,7 +34,6 @@ module.exports = class Cache extends EventEmitter
 
     @_transform module
 
-    module.dependents = {} # set of filepaths
     module.requires = {} # map of module name -> module filepath
     requires = detective(module.contents)
     if requires
@@ -82,7 +76,8 @@ module.exports = class Cache extends EventEmitter
   purge: ->
     @_cache = {}
 
-  # remove a module from the cache, and recursively remove any orphaned dependents
+  # remove a module from the cache
+  # note that this will not remove any orphaned dependents
   remove: (filepath) ->
     m = @_cache[filepath]
 
@@ -91,10 +86,4 @@ module.exports = class Cache extends EventEmitter
       throw new Error "tried to purge non-cached module #{filepath}, this should never happen"
 
     delete @_cache[filepath]
-
-    for own k of m.requires
-      requiredModule = @_cache[m.requires[k]]
-      delete requiredModule.dependents[filepath]
-      if _.isEmpty requiredModule.dependents
-        @remove requiredModule.path # TODO does this need to be absolute?
 

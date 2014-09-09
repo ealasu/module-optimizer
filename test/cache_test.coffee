@@ -39,27 +39,22 @@ describe 'Cache', ->
       a.should.be.an.instanceof File
       a.contents.toString().should.equal 'a'
       a.requires.should.eql {}
-      a.dependents.should.eql {}
 
       b = cache.get 'b'
       b.should.be.an.instanceof File
       b.contents.toString().should.equal 'require("a");'
       b.requires.should.eql {'a': 'a'}
-      b.dependents.should.eql {}
 
       c = cache.get 'c'
       c.should.be.an.instanceof File
       c.contents.toString().should.equal 'require("a"); require("b");'
       c.requires.should.eql {'a': 'a', 'b': 'b'}
-      c.dependents.should.eql {}
 
       a2 = cache.get 'a'
       a2.should.equal a
-      a2.dependents.should.eql {'b': true, 'c': true}
 
       b2 = cache.get 'b'
       b2.should.equal b
-      b2.dependents.should.eql {'c': true}
 
 
   describe 'remove', ->
