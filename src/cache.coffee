@@ -4,13 +4,17 @@ path = require 'path'
 _ = require 'lodash'
 File = require 'vinyl'
 detective = require 'detective'
+gulpStreamAdapter = require './gulp_stream_adapter'
 
 module.exports = class Cache extends EventEmitter
 
   constructor: ({@transforms, @resolvers} = {}) ->
     @_cache = {}
-    @transforms ||= []
     @resolvers ||= []
+    @transforms = _.map @transforms || [], (t) ->
+      if typeof t.pipe == 'function'
+        t = gulpStreamAdapter(t)
+      t
 
   # override this for testing
   _loadModuleContents: (filepath) ->
