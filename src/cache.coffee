@@ -44,7 +44,7 @@ module.exports = class Cache extends EventEmitter
 
     # map of require name -> resolved module filepath
     module.requires = _(requires)
-    .map(k) =>
+    .map (k) =>
       v = null
       for fn in @_resolvers
         v = fn(k, path.dirname(module.path))
